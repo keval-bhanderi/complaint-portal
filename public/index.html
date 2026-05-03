@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Complaint Portal</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand" onclick="showPage('home')" style="cursor:pointer;">
+      <img src="/images/logo.svg" alt="CivicAlert" style="height:80px;width:auto;" />
+    </div>
+    <div class="nav-links" id="nav-links">
+      <a href="#" onclick="showPage('home')" class="nav-link">Home</a>
+      <a href="#" onclick="showPage('map')" class="nav-link" id="nav-map">Map</a>
+      <a href="#" onclick="showPage('emergency')" class="nav-link" id="nav-emergency">🚨 Emergency</a>
+      <a href="#" onclick="showPage('my-complaints')" class="nav-link" id="nav-my">My Complaints</a>
+      <a href="#" onclick="showPage('dashboard')" class="nav-link hidden" id="nav-dash">Dashboard</a>
+      <a href="#" onclick="showPage('admin')" class="nav-link hidden" id="nav-admin">Admin</a>
+    </div>
+    <div class="nav-actions">
+      <div id="auth-buttons">
+        <button class="btn btn-outline" onclick="showPage('login')">Login</button>
+        <button class="btn btn-primary" onclick="showPage('register')">Register</button>
+      </div>
+      <div id="user-menu" class="hidden">
+        <span id="user-name-display" class="user-greeting"></span>
+        <button class="btn btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Pages -->
+  <main id="app">
+
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <section class="hero">
+        <div class="hero-content">
+          <h1>Report. Track. Resolve.</h1>
+          <p>Submit civic complaints to local authorities and track their resolution in real time.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" onclick="showPage('submit')">Submit a Complaint</button>
+            <button class="btn btn-outline btn-lg" onclick="showPage('map')">View Map</button>
+          </div>
+        </div>
+        <div class="hero-stats" id="hero-stats">
+          <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total complaints</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-resolved">—</div><div class="stat-label">Resolved</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-open">—</div><div class="stat-label">Open</div></div>
+        </div>
+      </section>
+
+      <section class="categories">
+        <h2>Report by Category</h2>
+        <div class="category-grid">
+          <div class="category-card" onclick="submitWithCategory('pothole')"><div class="cat-icon pothole"></div><span>Pothole</span></div>
+          <div class="category-card" onclick="submitWithCategory('garbage')"><div class="cat-icon garbage"></div><span>Garbage</span></div>
+          <div class="category-card" onclick="submitWithCategory('streetlight')"><div class="cat-icon streetlight"></div><span>Streetlight</span></div>
+          <div class="category-card" onclick="submitWithCategory('water')"><div class="cat-icon water"></div><span>Water</span></div>
+          <div class="category-card" onclick="submitWithCategory('drainage')"><div class="cat-icon drainage"></div><span>Drainage</span></div>
+          <div class="category-card" onclick="submitWithCategory('noise')"><div class="cat-icon noise"></div><span>Noise</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div id="page-login" class="page">
+      <div class="auth-container">
+        <h2>Welcome back</h2>
+        <p class="auth-sub">Log in to track your complaints</p>
+        <div id="login-error" class="alert alert-error hidden"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
+        <button class="btn btn-primary btn-full" onclick="login()">Login</button>
+        <p class="auth-switch">Don't have an account? <a href="#" onclick="showPage('register')">Register</a></p>
+      </div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="page-register" class="page">
+      <div class="auth-container">
+        <h2>Create account</h2>
+        <p class="auth-sub">Join to submit and track civic complaints</p>
+        <div id="register-error" class="alert alert-error hidden"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Full name</label><input type="text" id="reg-name" placeholder="Rahul Shah" /></div>
+          <div class="form-group"><label>Phone (optional)</label><input type="text" id="reg-phone" placeholder="+91 99999 99999" /></div>
+        </div>
+        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters" /></div>
+        <div class="form-group"><label>Area / Locality</label><input type="text" id="reg-area" placeholder="e.g. Anand, Gujarat" /></div>
+        <button class="btn btn-primary btn-full" onclick="register()">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" onclick="showPage('login')">Login</a></p>
+      </div>
+    </div>
+
+    <!-- SUBMIT COMPLAINT PAGE -->
+    <div id="page-submit" class="page">
+      <div class="form-container">
+        <h2>Submit a Complaint</h2>
+        <div id="submit-error" class="alert alert-error hidden"></div>
+        <div id="submit-success" class="alert alert-success hidden"></div>
+        <div class="form-group">
+          <label>Title <span class="required">*</span></label>
+          <input type="text" id="c-title" placeholder="e.g. Large pothole on MG Road near bus stop" maxlength="150" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category <span class="required">*</span></label>
+            <select id="c-category">
+              <option value="">Select category</option>
+              <option value="pothole">Pothole</option>
+              <option value="garbage">Garbage</option>
+              <option value="streetlight">Streetlight</option>
+              <option value="water">Water</option>
+              <option value="drainage">Drainage</option>
+              <option value="noise">Noise</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="c-priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description <span class="required">*</span></label>
+          <textarea id="c-description" rows="4" placeholder="Describe the issue in detail — when you noticed it, how severe it is, etc." maxlength="2000"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Location address <span class="required">*</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="c-address" placeholder="e.g. MG Road, Anand, Gujarat" style="flex:1;" />
+            <button type="button" class="btn btn-outline" onclick="searchAddress()">📍 Search</button>
+          </div>
+          <small style="color:var(--text-muted);font-size:12px;margin-top:4px;display:block;">Type address and click Search — or click directly on the map to pin location</small>
+          <input type="hidden" id="c-lat" />
+          <input type="hidden" id="c-lng" />
+        </div>
+        <div id="submit-map" style="height:280px;border-radius:8px;margin-top:8px;border:1px solid #e0e0e0;"></div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>Photos (up to 3, max 5MB each)</label>
+          <input type="file" id="c-photos" multiple accept="image/*" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="submitComplaint()">Submit Complaint</button>
+      </div>
+    </div>
+
+    <!-- MY COMPLAINTS PAGE -->
+    <div id="page-my-complaints" class="page">
+      <div class="page-header">
+        <h2>My Complaints</h2>
+        <button class="btn btn-primary" onclick="showPage('submit')">+ New Complaint</button>
+      </div>
+      <div class="filters">
+        <select id="filter-status" onchange="loadMyComplaints()">
+          <option value="">All statuses</option>
+          <option value="open">Open</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <select id="filter-category" onchange="loadMyComplaints()">
+          <option value="">All categories</option>
+          <option value="pothole">Pothole</option>
+          <option value="garbage">Garbage</option>
+          <option value="streetlight">Streetlight</option>
+          <option value="water">Water</option>
+          <option value="drainage">Drainage</option>
+          <option value="noise">Noise</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Search..." oninput="loadMyComplaints()" />
+      </div>
+      <div id="complaints-list" class="complaints-grid"></div>
+      <div id="pagination" class="pagination"></div>
+    </div>
+
+    <!-- MAP PAGE -->
+    <div id="page-map" class="page">
+      <div class="map-header">
+        <h2>Complaints Map</h2>
+        <div class="map-legend">
+          <span class="legend-dot open"></span>Open
+          <span class="legend-dot in-progress"></span>In Progress
+          <span class="legend-dot resolved"></span>Resolved
+          <span class="legend-dot rejected"></span>Rejected
+        </div>
+      </div>
+      <div id="main-map" style="height:600px;border-radius:12px;border:1px solid #e0e0e0;"></div>
+    </div>
+
+    <!-- DETAIL PAGE -->
+    <div id="page-detail" class="page">
+      <button class="btn btn-back" onclick="history.back(); loadMyComplaints()">← Back</button>
+      <div id="complaint-detail"></div>
+    </div>
+
+    <!-- DASHBOARD PAGE (authority/admin) -->
+    <div id="page-dashboard" class="page">
+      <h2>Authority Dashboard</h2>
+      <div class="stats-grid" id="dash-stats"></div>
+      <div class="dash-section">
+        <h3>All Complaints</h3>
+        <div class="filters">
+          <select id="dash-filter-status" onchange="loadDashComplaints()">
+            <option value="">All statuses</option>
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <select id="dash-filter-category" onchange="loadDashComplaints()">
+            <option value="">All categories</option>
+            <option value="pothole">Pothole</option>
+            <option value="garbage">Garbage</option>
+            <option value="streetlight">Streetlight</option>
+            <option value="water">Water</option>
+            <option value="drainage">Drainage</option>
+            <option value="noise">Noise</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div id="dash-complaints-list" class="complaints-grid"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN PAGE -->
+    <div id="page-admin" class="page">
+      <h2>User Management</h2>
+      <div class="filters">
+        <select id="admin-role-filter" onchange="loadUsers()">
+          <option value="">All roles</option>
+          <option value="citizen">Citizens</option>
+          <option value="authority">Authority</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div id="users-table-wrap">
+        <table class="users-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Area</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMERGENCY NUMBERS PAGE -->
+    <div id="page-emergency" class="page">
+      <div class="emergency-header">
+        <h2>🚨 Emergency Numbers</h2>
+        <p class="emergency-sub">Important government and emergency contact numbers</p>
+        <div class="emergency-search">
+          <input type="text" id="emergency-search" placeholder="Search by name or number..." oninput="filterEmergency()" />
+        </div>
+      </div>
+      <div id="emergency-grid" class="emergency-grid"></div>
+      <div id="add-emergency-btn" class="hidden" style="margin-top:24px;text-align:center;">
+        <button class="btn btn-primary" onclick="showAddEmergencyModal()">+ Add Emergency Number</button>
+      </div>
+    </div>
+
+  </main>
+
+    <!-- Add Emergency Modal -->
+    <div id="emergency-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <h3>Add Emergency Number</h3>
+        <div class="form-group"><label>Name</label><input type="text" id="em-name" placeholder="e.g. Fire Brigade" /></div>
+        <div class="form-group"><label>Department</label><input type="text" id="em-dept" placeholder="e.g. Fire Emergency" /></div>
+        <div class="form-group"><label>Phone Number</label><input type="text" id="em-number" placeholder="e.g. 101" /></div>
+        <div class="form-group">
+          <label>Color</label>
+          <select id="em-category">
+            <option value="red">🔴 Emergency (Red)</option>
+            <option value="blue">🔵 Police/Safety (Blue)</option>
+            <option value="green">🟢 General (Green)</option>
+            <option value="amber">🟡 Health (Amber)</option>
+            <option value="purple">🟣 Civic (Purple)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Icon (emoji)</label><input type="text" id="em-icon" placeholder="e.g. 🚑" /></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeEmergencyModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="addEmergencyNumber()">Add</button>
+        </div>
+      </div>
+    </div>
+
+  <!-- Status Update Modal -->
+  <div id="status-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Update Status</h3>
+      <input type="hidden" id="modal-complaint-id" />
+      <div class="form-group">
+        <label>New Status</label>
+        <select id="modal-status">
+          <option value="open">Open</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Note (shown to citizen)</label>
+        <textarea id="modal-note" rows="3" placeholder="Describe action taken or reason for rejection..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitStatusUpdate()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

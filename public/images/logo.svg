@@ -1,0 +1,17 @@
+<svg width="100%" viewBox="0 0 680 200" role="img" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .logo-text { font-family: system-ui, -apple-system, sans-serif; font-weight: 500; fill: #1a1a18; }
+    .logo-sub { font-family: system-ui, -apple-system, sans-serif; font-weight: 400; fill: #6b6b67; }
+  </style>
+  <circle cx="100" cy="100" r="56" fill="#1D9E75"/>
+  <path d="M100 55 L130 68 L130 98 Q130 122 100 138 Q70 122 70 98 L70 68 Z" fill="white" opacity="0.95"/>
+  <circle cx="100" cy="90" r="13" fill="#1D9E75"/>
+  <path d="M100 103 Q88 90 88 83 A12 12 0 0 1 112 83 Q112 90 100 103Z" fill="#1D9E75"/>
+  <circle cx="100" cy="90" r="6" fill="white"/>
+  <circle cx="100" cy="118" r="4" fill="#1D9E75"/>
+  <text x="176" y="88" class="logo-text" font-size="42">CivicAlert</text>
+  <text x="178" y="122" class="logo-sub" font-size="17">Community Complaint Portal</text>
+  <rect x="178" y="134" width="280" height="2" rx="1" fill="#1D9E75" opacity="0.4"/>
+  <circle cx="178" cy="154" r="4" fill="#1D9E75"/>
+  <text x="190" y="159" class="logo-sub" font-size="13">Report · Track · Resolve</text>
+</svg>
