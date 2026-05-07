@@ -3,22 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Community Complaint Portal</title>
+  <title>CivicAlert — Community Complaint Portal</title>
+  <meta name="description" content="Report civic issues, track status updates, and get notified when resolved." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden"></div>
+
   <!-- Navbar -->
   <nav class="navbar" id="navbar">
     <div class="nav-brand" onclick="showPage('home')" style="cursor:pointer;">
-      <img src="/images/logo.svg" alt="CivicAlert" style="height:80px;width:auto;" />
+      <img src="/images/logo.svg" alt="CivicAlert" style="height:36px;width:auto;" onerror="this.style.display='none';document.getElementById('brand-text').style.display='flex'" />
+      <div id="brand-text" style="display:none;align-items:center;gap:8px;">
+        <div class="brand-icon"></div>
+        <span>CivicAlert</span>
+      </div>
     </div>
     <div class="nav-links" id="nav-links">
       <a href="#" onclick="showPage('home')" class="nav-link">Home</a>
-      <a href="#" onclick="showPage('map')" class="nav-link" id="nav-map">Map</a>
-      <a href="#" onclick="showPage('emergency')" class="nav-link" id="nav-emergency">🚨 Emergency</a>
+      <a href="#" onclick="showPage('about')" class="nav-link">About</a>
+      <a href="#" onclick="showPage('map')" class="nav-link">Map</a>
+      <a href="#" onclick="showPage('emergency')" class="nav-link">🚨 Emergency</a>
       <a href="#" onclick="showPage('my-complaints')" class="nav-link" id="nav-my">My Complaints</a>
       <a href="#" onclick="showPage('dashboard')" class="nav-link hidden" id="nav-dash">Dashboard</a>
       <a href="#" onclick="showPage('admin')" class="nav-link hidden" id="nav-admin">Admin</a>
@@ -32,51 +42,180 @@
         <span id="user-name-display" class="user-greeting"></span>
         <button class="btn btn-outline" onclick="logout()">Logout</button>
       </div>
+      <!-- Hamburger button -->
+      <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </nav>
 
-  <!-- Pages -->
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#" onclick="mobileNav('home')" class="nav-link">🏠 Home</a>
+    <a href="#" onclick="mobileNav('about')" class="nav-link">ℹ️ About</a>
+    <a href="#" onclick="mobileNav('map')" class="nav-link">🗺️ Map</a>
+    <a href="#" onclick="mobileNav('emergency')" class="nav-link">🚨 Emergency</a>
+    <a href="#" onclick="mobileNav('my-complaints')" class="nav-link" id="mob-my">📋 My Complaints</a>
+    <a href="#" onclick="mobileNav('submit')" class="nav-link" id="mob-submit">+ Submit Complaint</a>
+    <a href="#" onclick="mobileNav('dashboard')" class="nav-link hidden" id="mob-dash">📊 Dashboard</a>
+    <a href="#" onclick="mobileNav('admin')" class="nav-link hidden" id="mob-admin">⚙️ Admin</a>
+  </div>
   <main id="app">
 
     <!-- HOME PAGE -->
     <div id="page-home" class="page active">
       <section class="hero">
         <div class="hero-content">
-          <h1>Report. Track. Resolve.</h1>
-          <p>Submit civic complaints to local authorities and track their resolution in real time.</p>
+          <div class="hero-badge">🏛️ Civic Issue Management</div>
+          <h1>Report. Track. <span class="hero-highlight">Resolve.</span></h1>
+          <p>Submit civic complaints to local authorities and track their resolution in real time. Together we build a better community.</p>
           <div class="hero-actions">
-            <button class="btn btn-primary btn-lg" onclick="showPage('submit')">Submit a Complaint</button>
-            <button class="btn btn-outline btn-lg" onclick="showPage('map')">View Map</button>
+            <button class="btn btn-primary btn-lg" onclick="showPage('submit')">+ Submit a Complaint</button>
+            <button class="btn btn-outline btn-lg" onclick="showPage('map')">🗺️ View Map</button>
           </div>
         </div>
         <div class="hero-stats" id="hero-stats">
-          <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total complaints</div></div>
-          <div class="stat-card"><div class="stat-num" id="stat-resolved">—</div><div class="stat-label">Resolved</div></div>
-          <div class="stat-card"><div class="stat-num" id="stat-open">—</div><div class="stat-label">Open</div></div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-total">—</div>
+            <div class="stat-label">Total Complaints</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num resolved" id="stat-resolved">—</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num open" id="stat-open">—</div>
+            <div class="stat-label">Open</div>
+          </div>
         </div>
       </section>
 
+      <!-- How it works -->
+      <section class="how-it-works">
+        <h2>How it works</h2>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-icon">📝</div>
+            <h3>Submit</h3>
+            <p>Report a civic issue with photos and location pin on the map</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-icon">👮</div>
+            <h3>Review</h3>
+            <p>Local authorities review and assign your complaint for action</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-icon">✅</div>
+            <h3>Resolve</h3>
+            <p>Get notified by email when your issue is resolved</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories -->
       <section class="categories">
         <h2>Report by Category</h2>
         <div class="category-grid">
-          <div class="category-card" onclick="submitWithCategory('pothole')"><div class="cat-icon pothole"></div><span>Pothole</span></div>
-          <div class="category-card" onclick="submitWithCategory('garbage')"><div class="cat-icon garbage"></div><span>Garbage</span></div>
-          <div class="category-card" onclick="submitWithCategory('streetlight')"><div class="cat-icon streetlight"></div><span>Streetlight</span></div>
-          <div class="category-card" onclick="submitWithCategory('water')"><div class="cat-icon water"></div><span>Water</span></div>
-          <div class="category-card" onclick="submitWithCategory('drainage')"><div class="cat-icon drainage"></div><span>Drainage</span></div>
-          <div class="category-card" onclick="submitWithCategory('noise')"><div class="cat-icon noise"></div><span>Noise</span></div>
+          <div class="category-card" onclick="submitWithCategory('pothole')">
+            <div class="cat-icon-wrap pothole">🕳️</div>
+            <span>Pothole</span>
+          </div>
+          <div class="category-card" onclick="submitWithCategory('garbage')">
+            <div class="cat-icon-wrap garbage">🗑️</div>
+            <span>Garbage</span>
+          </div>
+          <div class="category-card" onclick="submitWithCategory('streetlight')">
+            <div class="cat-icon-wrap streetlight">💡</div>
+            <span>Streetlight</span>
+          </div>
+          <div class="category-card" onclick="submitWithCategory('water')">
+            <div class="cat-icon-wrap water">💧</div>
+            <span>Water</span>
+          </div>
+          <div class="category-card" onclick="submitWithCategory('drainage')">
+            <div class="cat-icon-wrap drainage">🌊</div>
+            <span>Drainage</span>
+          </div>
+          <div class="category-card" onclick="submitWithCategory('noise')">
+            <div class="cat-icon-wrap noise">🔊</div>
+            <span>Noise</span>
+          </div>
         </div>
       </section>
+    </div>
+
+    <!-- ABOUT PAGE -->
+    <div id="page-about" class="page">
+      <div class="about-container">
+        <div class="about-hero">
+          <h1>About CivicAlert</h1>
+          <p>A platform built to bridge the gap between citizens and local authorities.</p>
+        </div>
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-icon">🎯</div>
+            <h3>Our Mission</h3>
+            <p>To empower citizens to report civic issues and hold local authorities accountable for timely resolution of community problems.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">👥</div>
+            <h3>Who can use it</h3>
+            <p>Any citizen can register and submit complaints. Local authorities manage and resolve them. Admins oversee the entire system.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">🔒</div>
+            <h3>Privacy & Security</h3>
+            <p>Your data is protected with JWT authentication and encrypted passwords. We never share your personal information.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">📱</div>
+            <h3>How to get started</h3>
+            <p>Register a free account, submit your first complaint with a photo and location, and track its progress in real time.</p>
+          </div>
+        </div>
+
+        <div class="about-tech">
+          <h2>Built with</h2>
+          <div class="tech-tags">
+            <span class="tech-tag">Express.js</span>
+            <span class="tech-tag">Node.js</span>
+            <span class="tech-tag">MongoDB</span>
+            <span class="tech-tag">JWT Auth</span>
+            <span class="tech-tag">Leaflet.js</span>
+            <span class="tech-tag">Cloudinary</span>
+            <span class="tech-tag">Nodemailer</span>
+            <span class="tech-tag">OpenStreetMap</span>
+          </div>
+        </div>
+
+        <div class="about-contact">
+          <h2>Contact</h2>
+          <p>For issues or suggestions, submit a complaint or reach out at <a href="mailto:support@civicalert.in">support@civicalert.in</a></p>
+          <button class="btn btn-primary" onclick="showPage('submit')">Submit a Complaint</button>
+        </div>
+      </div>
     </div>
 
     <!-- LOGIN PAGE -->
     <div id="page-login" class="page">
       <div class="auth-container">
+        <div class="auth-logo">🏛️</div>
         <h2>Welcome back</h2>
         <p class="auth-sub">Log in to track your complaints</p>
         <div id="login-error" class="alert alert-error hidden"></div>
-        <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" /></div>
-        <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+        </div>
         <button class="btn btn-primary btn-full" onclick="login()">Login</button>
         <p class="auth-switch">Don't have an account? <a href="#" onclick="showPage('register')">Register</a></p>
       </div>
@@ -85,16 +224,32 @@
     <!-- REGISTER PAGE -->
     <div id="page-register" class="page">
       <div class="auth-container">
+        <div class="auth-logo">🏛️</div>
         <h2>Create account</h2>
         <p class="auth-sub">Join to submit and track civic complaints</p>
         <div id="register-error" class="alert alert-error hidden"></div>
         <div class="form-row">
-          <div class="form-group"><label>Full name</label><input type="text" id="reg-name" placeholder="Rahul Shah" /></div>
-          <div class="form-group"><label>Phone (optional)</label><input type="text" id="reg-phone" placeholder="+91 99999 99999" /></div>
+          <div class="form-group">
+            <label>Full name</label>
+            <input type="text" id="reg-name" placeholder="Rahul Shah" />
+          </div>
+          <div class="form-group">
+            <label>Phone (optional)</label>
+            <input type="text" id="reg-phone" placeholder="+91 99999 99999" />
+          </div>
         </div>
-        <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com" /></div>
-        <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters" /></div>
-        <div class="form-group"><label>Area / Locality</label><input type="text" id="reg-area" placeholder="e.g. Anand, Gujarat" /></div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="At least 6 characters" />
+        </div>
+        <div class="form-group">
+          <label>Area / Locality</label>
+          <input type="text" id="reg-area" placeholder="e.g. Anand, Gujarat" />
+        </div>
         <button class="btn btn-primary btn-full" onclick="register()">Create Account</button>
         <p class="auth-switch">Already have an account? <a href="#" onclick="showPage('login')">Login</a></p>
       </div>
@@ -104,6 +259,7 @@
     <div id="page-submit" class="page">
       <div class="form-container">
         <h2>Submit a Complaint</h2>
+        <p style="color:var(--text-muted);margin-bottom:24px;font-size:14px;">Fill in the details below. The more information you provide, the faster it gets resolved.</p>
         <div id="submit-error" class="alert alert-error hidden"></div>
         <div id="submit-success" class="alert alert-success hidden"></div>
         <div class="form-group">
@@ -115,21 +271,21 @@
             <label>Category <span class="required">*</span></label>
             <select id="c-category">
               <option value="">Select category</option>
-              <option value="pothole">Pothole</option>
-              <option value="garbage">Garbage</option>
-              <option value="streetlight">Streetlight</option>
-              <option value="water">Water</option>
-              <option value="drainage">Drainage</option>
-              <option value="noise">Noise</option>
-              <option value="other">Other</option>
+              <option value="pothole">🕳️ Pothole</option>
+              <option value="garbage">🗑️ Garbage</option>
+              <option value="streetlight">💡 Streetlight</option>
+              <option value="water">💧 Water</option>
+              <option value="drainage">🌊 Drainage</option>
+              <option value="noise">🔊 Noise</option>
+              <option value="other">📌 Other</option>
             </select>
           </div>
           <div class="form-group">
             <label>Priority</label>
             <select id="c-priority">
-              <option value="low">Low</option>
-              <option value="medium" selected>Medium</option>
-              <option value="high">High</option>
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
             </select>
           </div>
         </div>
@@ -152,7 +308,7 @@
           <label>Photos (up to 3, max 5MB each)</label>
           <input type="file" id="c-photos" multiple accept="image/*" />
         </div>
-        <button class="btn btn-primary btn-full" onclick="submitComplaint()">Submit Complaint</button>
+        <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="submitComplaint()">Submit Complaint</button>
       </div>
     </div>
 
@@ -180,7 +336,7 @@
           <option value="noise">Noise</option>
           <option value="other">Other</option>
         </select>
-        <input type="text" id="filter-search" placeholder="Search..." oninput="loadMyComplaints()" />
+        <input type="text" id="filter-search" placeholder="🔍 Search..." oninput="loadMyComplaints()" />
       </div>
       <div id="complaints-list" class="complaints-grid"></div>
       <div id="pagination" class="pagination"></div>
@@ -202,13 +358,16 @@
 
     <!-- DETAIL PAGE -->
     <div id="page-detail" class="page">
-      <button class="btn btn-back" onclick="history.back(); loadMyComplaints()">← Back</button>
+      <button class="btn btn-back" onclick="showPage('my-complaints')">← Back</button>
       <div id="complaint-detail"></div>
     </div>
 
-    <!-- DASHBOARD PAGE (authority/admin) -->
+    <!-- DASHBOARD PAGE -->
     <div id="page-dashboard" class="page">
-      <h2>Authority Dashboard</h2>
+      <div class="page-header">
+        <h2>Authority Dashboard</h2>
+        <button class="btn btn-outline" onclick="loadDashboard()">🔄 Refresh</button>
+      </div>
       <div class="stats-grid" id="dash-stats"></div>
       <div class="dash-section">
         <h3>All Complaints</h3>
@@ -237,7 +396,10 @@
 
     <!-- ADMIN PAGE -->
     <div id="page-admin" class="page">
-      <h2>User Management</h2>
+      <div class="page-header">
+        <h2>User Management</h2>
+        <span id="admin-user-count" style="font-size:14px;color:var(--text-muted);"></span>
+      </div>
       <div class="filters">
         <select id="admin-role-filter" onchange="loadUsers()">
           <option value="">All roles</option>
@@ -246,21 +408,30 @@
           <option value="admin">Admin</option>
         </select>
       </div>
-      <div id="users-table-wrap">
+      <div id="users-table-wrap" style="overflow-x:auto;">
         <table class="users-table">
-          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Area</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Area</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
           <tbody id="users-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- EMERGENCY NUMBERS PAGE -->
+    <!-- EMERGENCY PAGE -->
     <div id="page-emergency" class="page">
       <div class="emergency-header">
         <h2>🚨 Emergency Numbers</h2>
-        <p class="emergency-sub">Important government and emergency contact numbers</p>
+        <p class="emergency-sub">Important government and emergency contact numbers — available 24/7</p>
         <div class="emergency-search">
-          <input type="text" id="emergency-search" placeholder="Search by name or number..." oninput="filterEmergency()" />
+          <input type="text" id="emergency-search" placeholder="🔍 Search by name or number..." oninput="filterEmergency()" />
         </div>
       </div>
       <div id="emergency-grid" class="emergency-grid"></div>
@@ -271,43 +442,80 @@
 
   </main>
 
-    <!-- Add Emergency Modal -->
-    <div id="emergency-modal" class="modal-overlay hidden">
-      <div class="modal">
-        <h3>Add Emergency Number</h3>
-        <div class="form-group"><label>Name</label><input type="text" id="em-name" placeholder="e.g. Fire Brigade" /></div>
-        <div class="form-group"><label>Department</label><input type="text" id="em-dept" placeholder="e.g. Fire Emergency" /></div>
-        <div class="form-group"><label>Phone Number</label><input type="text" id="em-number" placeholder="e.g. 101" /></div>
-        <div class="form-group">
-          <label>Color</label>
-          <select id="em-category">
-            <option value="red">🔴 Emergency (Red)</option>
-            <option value="blue">🔵 Police/Safety (Blue)</option>
-            <option value="green">🟢 General (Green)</option>
-            <option value="amber">🟡 Health (Amber)</option>
-            <option value="purple">🟣 Civic (Purple)</option>
-          </select>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">🏛️ CivicAlert</span>
+        <p>Report civic issues, track status updates, and get notified when resolved.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Pages</h4>
+          <a href="#" onclick="showPage('home')">Home</a>
+          <a href="#" onclick="showPage('about')">About</a>
+          <a href="#" onclick="showPage('map')">Map</a>
+          <a href="#" onclick="showPage('emergency')">Emergency</a>
         </div>
-        <div class="form-group"><label>Icon (emoji)</label><input type="text" id="em-icon" placeholder="e.g. 🚑" /></div>
-        <div class="modal-actions">
-          <button class="btn btn-outline" onclick="closeEmergencyModal()">Cancel</button>
-          <button class="btn btn-primary" onclick="addEmergencyNumber()">Add</button>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <a href="#" onclick="showPage('register')">Register</a>
+          <a href="#" onclick="showPage('login')">Login</a>
+          <a href="#" onclick="showPage('submit')">Submit Complaint</a>
+          <a href="#" onclick="showPage('my-complaints')">My Complaints</a>
+        </div>
+        <div class="footer-col">
+          <h4>Emergency</h4>
+          <a href="tel:112">112 — National Emergency</a>
+          <a href="tel:100">100 — Police</a>
+          <a href="tel:101">101 — Fire</a>
+          <a href="tel:108">108 — Ambulance</a>
         </div>
       </div>
     </div>
+    <div class="footer-bottom">
+      <p>© 2025 CivicAlert. Built by <strong>Keval Bhanderi</strong></p>
+      <p>Made with ❤️ for a better community</p>
+    </div>
+  </footer>
+
+  <!-- Add Emergency Modal -->
+  <div id="emergency-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Add Emergency Number</h3>
+      <div class="form-group"><label>Name</label><input type="text" id="em-name" placeholder="e.g. Fire Brigade" /></div>
+      <div class="form-group"><label>Department</label><input type="text" id="em-dept" placeholder="e.g. Fire Emergency" /></div>
+      <div class="form-group"><label>Phone Number</label><input type="text" id="em-number" placeholder="e.g. 101" /></div>
+      <div class="form-group">
+        <label>Color</label>
+        <select id="em-category">
+          <option value="red">🔴 Emergency (Red)</option>
+          <option value="blue">🔵 Police/Safety (Blue)</option>
+          <option value="green">🟢 General (Green)</option>
+          <option value="amber">🟡 Health (Amber)</option>
+          <option value="purple">🟣 Civic (Purple)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Icon (emoji)</label><input type="text" id="em-icon" placeholder="e.g. 🚑" /></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeEmergencyModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addEmergencyNumber()">Add</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Status Update Modal -->
   <div id="status-modal" class="modal-overlay hidden">
     <div class="modal">
-      <h3>Update Status</h3>
+      <h3>Update Complaint Status</h3>
       <input type="hidden" id="modal-complaint-id" />
       <div class="form-group">
         <label>New Status</label>
         <select id="modal-status">
-          <option value="open">Open</option>
-          <option value="in-progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="rejected">Rejected</option>
+          <option value="open">🟡 Open</option>
+          <option value="in-progress">🔵 In Progress</option>
+          <option value="resolved">🟢 Resolved</option>
+          <option value="rejected">🔴 Rejected</option>
         </select>
       </div>
       <div class="form-group">
