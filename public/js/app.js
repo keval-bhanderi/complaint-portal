@@ -562,11 +562,23 @@ async function updateRole(id, role) {
   } catch (err) { showToast(err.message, 'error'); }
 }
 
+// ✅ New code
 async function toggleUser(id) {
   try {
-    const { message } = await Users.toggle(id);
+    const { message, user } = await Users.toggle(id);
     showToast(message);
-    loadUsers();
+    const btn = document.querySelector(`button[onclick="toggleUser('${id}')"]`);
+    if (btn) {
+      btn.textContent = user.isActive ? 'Deactivate' : 'Activate';
+    }
+    const row = btn?.closest('tr');
+    if (row) {
+      const statusCell = row.querySelector('.badge');
+      if (statusCell) {
+        statusCell.className = `badge ${user.isActive ? 'badge-resolved' : 'badge-rejected'}`;
+        statusCell.textContent = user.isActive ? 'Active' : 'Inactive';
+      }
+    }
   } catch (err) { showToast(err.message, 'error'); }
 }
 
