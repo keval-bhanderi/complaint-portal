@@ -297,8 +297,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .user-greeting { display: none; }
 }
 
-@media (max-width: 360){
-  #auto-buttons {
+@media (max-width: 360px){
+  #auth-buttons {
     display: flex;
   }
 }
