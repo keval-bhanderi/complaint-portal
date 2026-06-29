@@ -1,6 +1,9 @@
 {
   "name": "complaint-portal",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "Community Complaint Portal built with Express.js",
   "main": "server.js",
   "scripts": {
